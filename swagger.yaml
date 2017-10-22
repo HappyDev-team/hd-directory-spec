@@ -1,0 +1,182 @@
+swagger: '2.0'
+info:
+  description: >-
+    This is a default LDP server SPEC for distributed professional social
+    network. You can use the api key `special-key` to test the authorization    
+    filters.
+  version: 1.0.0
+  title: Happy Dev LDP
+  termsOfService: 'https://www.happy-dev.fr/cgu/'
+  contact:
+    email: smile@happy-dev.fr
+  license:
+    name: MIT
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+host: ldp.happy-dev.fr
+basePath: /api/ldp/v2
+tags:
+  - name: person
+    description: Specifications of our Happy Dev members class
+  - name: event
+    description: Specifications of our standard events class
+  - name: organization
+    description: The organizations being part of our network
+schemes:
+  - https
+  - http
+paths:
+  /person:
+    get:
+      tags:
+        - person
+      summary: Get the list of all persons typed resources on the current server
+      description: Multiple status values can be provided with comma separated strings
+      operationId: getResources
+      produces:
+        - application/ld+json
+        - text/turtle
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Person'
+        '400':
+          description: Invalid status value
+      security:
+        - ldpstore_auth:
+            - 'write:resource'
+            - 'read:resource'
+    post:
+      tags:
+        - person
+      summary: Add a new person to the LDP store
+      description: Create a new person
+      operationId: addResource
+      consumes:
+        - application/ld+json
+        - text/turtle
+      produces:
+        - application/ld+json
+        - text/turtle
+      parameters:
+        - in: body
+          name: body
+          description: Pet object that needs to be added to the store
+          required: true
+          schema:
+            $ref: '#/definitions/Person'
+      responses:
+        '200':
+          description: Successful operation
+          schema:
+            $ref: '#/definitions/Person'
+        '405':
+          description: Invalid input
+      security:
+        - ldpstore_auth:
+            - 'write:resource'
+            - 'read:resource'
+  '/person/{id}':
+    get:
+      tags:
+        - person
+      summary: Get the detail of a person resource
+      description: Multiple status values can be provided with comma separated strings
+      operationId: getResource
+      produces:
+        - application/ld+json
+        - text/turtle
+      parameters:
+        - name: id
+          in: path
+          description: The id of the resource to retrieve
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Successful operation
+          schema:
+            $ref: '#/definitions/Person'
+        '400':
+          description: Invalid status value
+      security:
+        - ldpstore_auth:
+            - 'write:resource'
+            - 'read:resource'
+    put:
+      tags:
+        - person
+      summary: Update an existing person
+      description: Update an existing person
+      operationId: updateResource
+      consumes:
+        - application/ld+json
+        - text/turtle
+      produces:
+        - application/ld+json
+        - text/turtle
+      parameters:
+        - in: body
+          name: body
+          description: Person object that is added to the store
+          required: true
+          schema:
+            $ref: '#/definitions/Person'
+      responses:
+        '200':
+          description: Successful operation
+          schema:
+            $ref: '#/definitions/Person'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Person not found
+        '405':
+          description: Validation exception
+      security:
+        - ldpstore_auth:
+            - 'write:resource'
+            - 'read:resource'
+securityDefinitions:
+  ldpstore_auth:
+    type: oauth2
+    authorizationUrl: 'https://ldp.happy-dev.fr/wp-login.php'
+    flow: implicit
+    scopes:
+      'write:resource': modify resource related to your organization
+      'read:resource': read resource related to your organization
+definitions:
+  Object:
+    type: object
+    properties:
+      '@id':
+        type: string
+        format: url
+  Person:
+    type: object
+    properties:
+      '@id':
+        type: string
+      'foaf:name':
+        type: string
+      'foaf:firstName':
+        type: string
+      'foaf:birthDate':
+        type: string
+        format: date-time
+      'foaf:projects':
+        type: array
+        items:
+          $ref: '#/definitions/Object'
+  ApiResponse:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      type:
+        type: string
+      message:
+        type: string
